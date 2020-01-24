@@ -42,6 +42,10 @@ population30$income_quintile <- ordered(population30$income_quintile, levels = 1
 hef_threshold20 <- quantile(income_dist, 0.2)[[1]]
 hef_threshold30 <- quantile(income_dist, 0.3)[[1]]
 
+## Add sex and income quintile to results data frame
+results20_80 <- merge(results_threshold20_coverage80, population20 %>% select(id, income_quintile, sex, hef), by = "id")
+results30_80 <- merge(results_threshold30_coverage80, population30 %>% select(id, income_quintile, sex, hef), by = "id")
+
 ## Setting HEF coverage to 100%
 results20_100 <- results20_80 %>%
   mutate(oop_medical = ifelse(strategy != "base" & hef == 1, 0, oop_medical),
@@ -66,10 +70,6 @@ results30_100 <- results30_80 %>%
          che40_disposable_result = che(oop_total, disposable_income)$che40,
          pov_result = pov(oop_total, income),
          pov_disposable_result = pov(oop_total, disposable_income))
-
-## Add sex and income quintile to results data frame
-results20_80 <- merge(results_threshold20_coverage80, population20 %>% select(id, income_quintile, sex), by = "id")
-results30_80 <- merge(results_threshold30_coverage80, population30 %>% select(id, income_quintile, sex), by = "id")
 
 # Inflation factor
 inf.fct <- 16e6 / nrow(population20)
