@@ -1,0 +1,118 @@
+measure_id,measure_name,location_id,location_name,sex_id,sex_name,age_id,age_name,cause_id,cause_name,metric_id,metric_name,year,val,upper,lower
+6,Incidence,10,Cambodia,1,Male,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.000704789,0.001008063,0.000454945
+6,Incidence,10,Cambodia,2,Female,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.000637071,0.000914492,0.000422488
+6,Incidence,10,Cambodia,3,Both,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.000671825,0.000958869,0.000441519
+6,Incidence,10,Cambodia,1,Male,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.000895465,0.001231253,0.000583002
+6,Incidence,10,Cambodia,2,Female,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.000804152,0.001106868,0.000534801
+6,Incidence,10,Cambodia,3,Both,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.00085042,0.001150855,0.000568174
+6,Incidence,10,Cambodia,1,Male,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.001234177,0.001747784,0.000832228
+6,Incidence,10,Cambodia,2,Female,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.001092403,0.001508754,0.000724161
+6,Incidence,10,Cambodia,3,Both,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.001163192,0.001607501,0.000784111
+6,Incidence,10,Cambodia,1,Male,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.001380779,0.00186969,0.000981194
+6,Incidence,10,Cambodia,2,Female,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.00136629,0.001810045,0.000985283
+6,Incidence,10,Cambodia,3,Both,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.001373141,0.001818953,0.000991712
+6,Incidence,10,Cambodia,1,Male,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.001355757,0.001921476,0.000908542
+6,Incidence,10,Cambodia,2,Female,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.001663807,0.002354019,0.001153984
+6,Incidence,10,Cambodia,3,Both,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.00151291,0.002156883,0.001042384
+6,Incidence,10,Cambodia,1,Male,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.001367427,0.001965238,0.000929392
+6,Incidence,10,Cambodia,2,Female,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.001792864,0.002431336,0.001264227
+6,Incidence,10,Cambodia,3,Both,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.001585333,0.00217981,0.001104074
+6,Incidence,10,Cambodia,1,Male,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.001435252,0.002029976,0.000983365
+6,Incidence,10,Cambodia,2,Female,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.001759943,0.002407744,0.001254621
+6,Incidence,10,Cambodia,3,Both,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.001608645,0.002198756,0.001132914
+6,Incidence,10,Cambodia,1,Male,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.001386454,0.001913973,0.000965751
+6,Incidence,10,Cambodia,2,Female,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.001590349,0.002162165,0.00112313
+6,Incidence,10,Cambodia,3,Both,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.001502541,0.00202742,0.001063444
+6,Incidence,10,Cambodia,1,Male,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.001203428,0.001665834,0.000798293
+6,Incidence,10,Cambodia,2,Female,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.001285108,0.001742558,0.000873853
+6,Incidence,10,Cambodia,3,Both,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.00125091,0.001694259,0.000853684
+6,Incidence,10,Cambodia,1,Male,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.001100119,0.0015124,0.000753063
+6,Incidence,10,Cambodia,2,Female,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.001120574,0.001534524,0.00076525
+6,Incidence,10,Cambodia,3,Both,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.001111926,0.001510151,0.000762982
+6,Incidence,10,Cambodia,1,Male,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.001059385,0.001486014,0.000737644
+6,Incidence,10,Cambodia,2,Female,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.001055072,0.001453692,0.000757155
+6,Incidence,10,Cambodia,3,Both,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.001056301,0.00145693,0.000749618
+6,Incidence,10,Cambodia,1,Male,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.000578114,0.000818273,0.000391223
+6,Incidence,10,Cambodia,2,Female,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.000614449,0.000848337,0.000428589
+6,Incidence,10,Cambodia,3,Both,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.000600818,0.000828517,0.00041707
+6,Incidence,10,Cambodia,1,Male,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.000631721,0.000707648,0.000564062
+6,Incidence,10,Cambodia,2,Female,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.00068155,0.000769395,0.000605487
+6,Incidence,10,Cambodia,3,Both,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.000656502,0.00073371,0.000586255
+1,Deaths,10,Cambodia,1,Male,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.005601333,0.007807926,0.003927068
+1,Deaths,10,Cambodia,2,Female,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.008300778,0.01232716,0.005258687
+1,Deaths,10,Cambodia,3,Both,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.00655557,0.008606827,0.004859759
+1,Deaths,10,Cambodia,1,Male,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.009171746,0.01266424,0.006356108
+1,Deaths,10,Cambodia,2,Female,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.011304517,0.016570968,0.007575025
+1,Deaths,10,Cambodia,3,Both,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.010000773,0.012988004,0.007769321
+1,Deaths,10,Cambodia,1,Male,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.013355532,0.018459131,0.009568745
+1,Deaths,10,Cambodia,2,Female,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.018163932,0.026439293,0.012374884
+1,Deaths,10,Cambodia,3,Both,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.015329228,0.019838937,0.011753436
+1,Deaths,10,Cambodia,1,Male,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.022754854,0.030968617,0.016252625
+1,Deaths,10,Cambodia,2,Female,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.025290137,0.036422671,0.017752682
+1,Deaths,10,Cambodia,3,Both,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.023814342,0.029579745,0.018703649
+1,Deaths,10,Cambodia,1,Male,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.029679196,0.03980023,0.020851517
+1,Deaths,10,Cambodia,2,Female,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.037673484,0.054311919,0.025752519
+1,Deaths,10,Cambodia,3,Both,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.03300647,0.041305792,0.02598252
+1,Deaths,10,Cambodia,1,Male,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.037250081,0.049561692,0.026673841
+1,Deaths,10,Cambodia,2,Female,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.048049495,0.070794164,0.032876785
+1,Deaths,10,Cambodia,3,Both,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.041696641,0.053060383,0.032329399
+1,Deaths,10,Cambodia,1,Male,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.046084897,0.063349368,0.033199607
+1,Deaths,10,Cambodia,2,Female,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.052134917,0.076491949,0.03587573
+1,Deaths,10,Cambodia,3,Both,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.048660991,0.063216642,0.037729033
+1,Deaths,10,Cambodia,1,Male,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.044236219,0.060430517,0.03096967
+1,Deaths,10,Cambodia,2,Female,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.05500618,0.079542921,0.038209653
+1,Deaths,10,Cambodia,3,Both,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.049148864,0.06332753,0.037874678
+1,Deaths,10,Cambodia,1,Male,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.037956412,0.053875622,0.025940574
+1,Deaths,10,Cambodia,2,Female,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.047166538,0.070154305,0.0322317
+1,Deaths,10,Cambodia,3,Both,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.042298172,0.054958153,0.032610372
+1,Deaths,10,Cambodia,1,Male,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.031460286,0.044725257,0.021414744
+1,Deaths,10,Cambodia,2,Female,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.034435782,0.048485564,0.024435963
+1,Deaths,10,Cambodia,3,Both,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.032918917,0.043242961,0.025359227
+1,Deaths,10,Cambodia,1,Male,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.029604147,0.040609465,0.02071347
+1,Deaths,10,Cambodia,2,Female,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.027965131,0.041336569,0.018249869
+1,Deaths,10,Cambodia,3,Both,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.028744659,0.037856445,0.021876153
+1,Deaths,10,Cambodia,1,Male,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.019941721,0.024958841,0.015680252
+1,Deaths,10,Cambodia,2,Female,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.017359763,0.023463092,0.01328117
+1,Deaths,10,Cambodia,3,Both,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.018376438,0.0224107,0.01537615
+1,Deaths,10,Cambodia,1,Male,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.025391392,0.028852133,0.022005904
+1,Deaths,10,Cambodia,2,Female,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.028901839,0.038332756,0.024451581
+1,Deaths,10,Cambodia,3,Both,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.027054845,0.03164501,0.024122367
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.01815306,0.024449118,0.012861652
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.019552382,0.025395408,0.014373295
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,10,25 to 29,587,Diabetes mellitus,2,Percent,2017,0.01873846,0.024414492,0.013856606
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.02556259,0.033277328,0.01917222
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.025553561,0.032551376,0.019590535
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,11,30 to 34,587,Diabetes mellitus,2,Percent,2017,0.025525444,0.032490595,0.019617711
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.032622828,0.041580415,0.025111751
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.032305354,0.040336176,0.025748883
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,12,35 to 39,587,Diabetes mellitus,2,Percent,2017,0.032432477,0.039895918,0.025937382
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.041578568,0.051222062,0.032489515
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.040263055,0.049954645,0.032289744
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,13,40 to 44,587,Diabetes mellitus,2,Percent,2017,0.04091518,0.049308798,0.032960934
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.0473835,0.059072977,0.037434066
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.051561904,0.06405867,0.041520005
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,14,45 to 49,587,Diabetes mellitus,2,Percent,2017,0.049303514,0.059354657,0.040765772
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.051437478,0.063389331,0.040548416
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.061624798,0.077775802,0.049500982
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,15,50 to 54,587,Diabetes mellitus,2,Percent,2017,0.05603073,0.067330457,0.046538936
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.057115912,0.070837953,0.045993059
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.065338268,0.082912153,0.051527655
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,16,55 to 59,587,Diabetes mellitus,2,Percent,2017,0.060934816,0.072381264,0.050920204
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.054136844,0.067863471,0.042722303
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.065210373,0.081549434,0.052207263
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,17,60 to 64,587,Diabetes mellitus,2,Percent,2017,0.059637003,0.070994204,0.049647148
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.047533812,0.061328763,0.037052535
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.058177307,0.073670488,0.045203237
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,18,65 to 69,587,Diabetes mellitus,2,Percent,2017,0.052923158,0.062879935,0.043342661
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.040851985,0.052354436,0.031238515
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.046704728,0.058918558,0.036877053
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,19,70 to 74,587,Diabetes mellitus,2,Percent,2017,0.04388699,0.052568034,0.035787603
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.03867235,0.048558758,0.030587731
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.040508077,0.051266612,0.031328809
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,20,75 to 79,587,Diabetes mellitus,2,Percent,2017,0.039683855,0.047697378,0.032671354
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.029982462,0.035810172,0.024733615
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.030625825,0.037351465,0.024899179
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,21,80 plus,587,Diabetes mellitus,2,Percent,2017,0.030371955,0.035542203,0.025582363
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,1,Male,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.026631698,0.031018756,0.022842412
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,2,Female,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.032017481,0.037720509,0.027343826
+2,DALYs (Disability-Adjusted Life Years),10,Cambodia,3,Both,22,All Ages,587,Diabetes mellitus,2,Percent,2017,0.029145195,0.033648586,0.025254651
