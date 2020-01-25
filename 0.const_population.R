@@ -1,3 +1,5 @@
+library(readstata13)
+
 
 ### Demographic characteristics
 ## Age distribution
@@ -10,7 +12,6 @@ p_female = 0.52
 
 ## Income distribution
 avg_income <- 963.86 * 12
-income_dist <- rgamma(n = 100000, shape = 0.5, scale = avg_income) # Distribution derived from average income per month 2017, CSES (1960 thousand KHR / 481.93 USD 2019)
 
 ### Age- and sex-specific all-cause mortality
 # Source: WHO GHO for Cambodia, 2016
@@ -88,3 +89,7 @@ p_utilization_cpa1 <- 0.025
 p_utilization_cpa2 <- 0.030
 p_utilization_cpa3 <- 0.042
 p_provider <- c(p_utilization_hc, p_utilization_cpa1, p_utilization_cpa2, p_utilization_cpa3) / sum(p_utilization_hc, p_utilization_cpa1, p_utilization_cpa2, p_utilization_cpa3)
+
+## Subsistence expenditure
+subsistence <- 47.96339 * 12 # 196K KHR (CSES 2017) / 4086.45 KHR per USD (2 Oct 2019); average monthly value per capital, 2017
+

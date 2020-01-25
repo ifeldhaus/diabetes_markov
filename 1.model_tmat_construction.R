@@ -1,6 +1,3 @@
-## 2. Population characteristics -------------------------------------------
-
-source('0.population.R')
 
 
 ## 5. Transition probabilities ---------------------------------------------
@@ -64,36 +61,40 @@ e_ins_ang <- e_ins # Turner et al. 1998 (UKPDS)
 e_ins_pvd <- e_ins # Turner et al. 1998 (UKPDS)
 e_ins_fail <- e_ins # Turner et al. 1998 (UKPDS)
 
+# General probablities
+p_ad <- 0.125  # Normal
+p_diag_base  <- 0.3696  # Normal
+
+# Effects of strategies
+e_screen_on_diag <- 1.5
+e_screen_on_util <- 2 # RR
+e_comp_on_util <- 2 # RR
+p_ad_if_tx <- 0.40  # Increased adherence
+
 
 # Main tmat function ------------------------------------------------------
 
-## Initialize the transition matrix
-tmat <- matrix(NA, nrow = 15, ncol = 15)
-colnames(tmat) <- stateNames
-rownames(tmat) <- stateNames
-
-function(strategy, hef, age, sex){
+build_tmat <- function(strategy, hef, age, sex){
 
   ## Set relevant probabilities
   is_strategy_screen <- strategy == "screen_only" | strategy == "screen_tx" | strategy == "screen_tx_comp"
   is_strategy_tx <- !(strategy == "base" | strategy == "screen_only" | strategy == "comp_only")
-  is_strategy_comp <- strategy == "comp_only" | strategy == "tx_comp" | strategy == "screen_tx_comp"
   
   #  Diagnosis; Source: Flessa & Zembok 2014
-  p_diag <- 0.3696 * ifelse(is_strategy_screen & hef, e_screen_on_diag, 1)
+  p_diag <- p_diag_base * ifelse(is_strategy_screen & hef, e_screen_on_diag, 1)
   
-  p_oad_ad <- ifelse(is_strategy_tx & hef, e_tx, 0.125)
-  p_ins_ad <- ifelse(is_strategy_tx & hef, e_tx, 0.125)
-  
-  #  Utilization
-  e_strategy_util <- ifelse(is_strategy_screen & hef, e_screen_on_util, 1) * ifelse(is_strategy_comp & hef, e_comp_on_util, 1)
-  p_op <- ifelse(hef, 0.172, 0.117) * e_strategy_util
-  p_hosp <- 0.015 * e_strategy_util
+  p_oad_ad <- ifelse(is_strategy_tx & hef, p_ad_if_tx, p_ad)
+  p_ins_ad <- ifelse(is_strategy_tx & hef, p_ad_if_tx, p_ad)
   
   # Assign parameters based on individual characteristics
   p_other_death <- all_cause_mortality[ all_cause_mortality$age == age & all_cause_mortality$sex == sex, "mr"]
   p_dm_death <- dm_mortality[ dm_mortality$age == age & dm_mortality$sex_name == sex, "val"]
   p_dm <- dm_incidence[dm_incidence$age == age & dm_incidence$sex_name == sex, "val"]
+  
+  ## Initialize the transition matrix
+  tmat <- matrix(NA, nrow = 15, ncol = 15)
+  colnames(tmat) <- stateNames
+  rownames(tmat) <- stateNames
   
   ## Define all values of tmat
   diag(tmat) <- 0

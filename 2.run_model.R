@@ -27,8 +27,7 @@ OUTPUT_DIR = 'output'
 # sudo R -e "install.packages('xtable', repos='http://cran.us.r-project.org')"
 
 library(tidyverse)
-library(markovchain) 
-library(readstata13)
+library(markovchain)
 library(parallel)
 library(foreach)
 library(doParallel) # alternative: `doMC`
@@ -39,21 +38,23 @@ source('helpers.R')
 
 # I. Hypotheses -----------------------------------------------------------
 
+source('0.const_population.R')
+
+
 ## 1. Disability weights ---------------------------------------------------
 
-source('0.disability_weights.R')
-
+source('0.const_disability_weights.R')
 
 
 ## 3. Costs ----------------------------------------------------------------
 
-source('0.costs.R')
+source('0.const_costs.R')
 
 
 ## 4. Coverage parameters --------------------------------------------------
 
 ## HEF eligibility and enrollment
-hef_threshold <- quantile(income_dist, 0.3)[[1]] # Income threshold at which individuals are eligible for HEF (USD); ~ 20th percentile (30th percentile in scenario analysis) of (gamma) income distribution ($28-31 USD) used in the population income distribution parameter defined below
+hef_quantile <- 0.2
 p_hef_enrollment <- 0.75
 
 ## Benefits of coverage
@@ -63,36 +64,22 @@ coverage <- 1 # 0.8 # If individual is under HEF, 80% of expenditures are covere
 p_hef_utilization = 1 # 0.16
 
 
-
 ## 6. States and strategies ------------------------------------------------
-
-
 
 ## Strategies to simulate
 strategyNames <- c("base", "screen_only", "tx_only", "comp_only", "screen_tx", "tx_comp", "screen_tx_comp")
 
-# Effects of strategies
-e_screen_on_diag <- 1.5
-e_screen_on_util <- 2 # RR
-e_comp_on_util <- 2 # RR
-e_tx <- 0.40
-
 
 # II. Simulate populations ----------------------------------------------------
 
-n_population <- as.integer(5e5) # total: 16e6
-# n_population <- 1000
+source('1.model_states.R')
+source('1.model_pop.R')
 
-# Time horizon
+## Settings
+# n_population <- as.integer(5e5) # total: 16e6
+n_population <- 1000
 n_cycles = 45
-
-# Load required functions 
-source("1.22_model_cost.R")
-source("1.20_model_dalys.R")
-source("1.FRP.R")
-
-create_new_population <- FALSE
-modify_hef <- TRUE
+create_new_population <- TRUE
 
 if (create_new_population) {
   
@@ -101,15 +88,13 @@ if (create_new_population) {
     id = 1:n_population,
     age_start = sample(age_dist, n_population, replace = TRUE),
     sex = ifelse(rbinom(n = n_population, size = 1, p = p_female) == 0, "Male", "Female"), # Relabel for `look_up`
-    income = rgamma(n = n_population, shape = 0.5, scale = avg_income),
+    income = rgamma(n = n_population, shape = 0.5, scale = avg_income), # Distribution derived from average income per month 2017, CSES (1960 thousand KHR / 481.93 USD 2019)
     disposable_income = income - subsistence,
-    hef = ifelse(income < hef_threshold, rbinom(n = n_population, size = 1, p = p_hef_enrollment), 0),
-    hef_utilization = ifelse(hef, rbinom(n = n_population, size = 1, p = p_hef_utilization), NA),
     init_state = mapply(function(age, sex) sample(stateNames, size = 1, prob = initialStates_KHR(age, sex)), age_start, sex)
   ) %>% as.data.frame
   
   ## Matrix of state probabilities (pointers) for each individual and cycle
-  person_cycle_x <- matrix(runif(n_population * n_cycles), n_population, n_cycles)
+  person_cycle_x <- matrix(runif(n_population * (n_cycles + 2)), n_population, (n_cycles + 2))
 
   save_df_to_csv(ichar, "ichar")
   save_object_to_rdata(person_cycle_x)
@@ -121,19 +106,18 @@ if (create_new_population) {
     dir("output", sprintf("(ichar|person_cycle_x)_%dL.*", n_population))
     ichar <- data.frame(readr::read_csv("output/ichar_500000L_2020-01-23_1757.csv"))
     person_cycle_x <- load_object_from_rdata('output/person_cycle_x_500000L_2020-01-23_1757.RData')
-    if (modify_hef) {
-      cat('Mutating HEF status.\n')
-      ichar <- ichar %>% mutate(
-        hef = ifelse(income < hef_threshold, rbinom(n = 1, size = 1, p = p_hef_enrollment), 0),
-        hef_utilization = ifelse(hef, rbinom(n = 1, size = 1, p = p_hef_utilization), NA)
-      )
-      save_df_to_csv(ichar, "ichar")
-    }
 }
 
+population <- add_hef_to_pop(ichar, person_cycle_x, hef_quantile)
 
 
 # III. Run Model ----------------------------------------------------------
+
+# Load required functions 
+source("1.costs.R")
+source("1.dalys.R")
+source("1.FRP.R")
+source("1.model_tmat_construction.R")
 
 ## Set up parallel computing
 foreach::getDoParWorkers()
@@ -199,17 +183,28 @@ for (strategy in strategyNames) {
         cat('.')
       }
 
-      id <- ichar[i_person, 'id']
-      age <- as.numeric(ichar[i_person, 'age_start'])
-      sex <- ichar[i_person, 'sex']
-      income <- as.numeric(ichar[i_person, 'income'])
-      disposable_income <- as.numeric(ichar[i_person, 'disposable_income'])
-      hef <- ichar[i_person, 'hef']
-      hef_utilization <- ichar[i_person, 'hef_utilization']
-      init_state <- ichar[i_person, 'init_state']
+      id <- population[i_person, 'id']
+      age <- as.numeric(population[i_person, 'age_start'])
+      sex <- population[i_person, 'sex']
+      income <- as.numeric(population[i_person, 'income'])
+      disposable_income <- as.numeric(population[i_person, 'disposable_income'])
+      hef <- population[i_person, 'hef']
+      hef_utilization <- population[i_person, 'hef_utilization']
+      init_state <- population[i_person, 'init_state']
+      
+      #  Impact of strategy on Utilization:
+      ## This only impacts cost computations
+      is_strategy_comp <- strategy == "comp_only" | strategy == "tx_comp" | strategy == "screen_tx_comp"
+      is_strategy_screen <- strategy == "screen_only" | strategy == "screen_tx" | strategy == "screen_tx_comp"
+      e_strategy_util <- ifelse(is_strategy_screen & hef, e_screen_on_util, 1) * ifelse(is_strategy_comp & hef, e_comp_on_util, 1)
+      p_op <- ifelse(hef, 0.172, 0.117) * e_strategy_util
+      p_hosp <- 0.015 * e_strategy_util
+      
       
       # Cycle through time horizon
       for (cycle in 1:n_cycles) {
+        
+        tmat <- build_tmat(strategy = strategy, hef = hef, age = age, sex = sex)
         
         # Advance one step in the chain
         current_state <- as.numeric(stateNames == init_state)
@@ -295,7 +290,6 @@ for (strategy in strategyNames) {
   time <- end_time - start_time
   cat("Done in", format(time), '\n')
   
-  # Combine results into single dataframes (results, ichar)
   results <- do.call(rbind, results_per_sample)
   all_results[[strategy]] <- results
 }

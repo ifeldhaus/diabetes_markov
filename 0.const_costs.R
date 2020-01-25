@@ -46,6 +46,3 @@ oop_transport_hosp <- 11.65
 ## Discount rate
 dr <- 0.03
 
-## Subsistence expenditure
-subsistence <- 47.96339 * 12 # 196K KHR (CSES 2017) / 4086.45 KHR per USD (2 Oct 2019); average monthly value per capital, 2017
-
