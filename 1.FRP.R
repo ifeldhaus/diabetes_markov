@@ -15,9 +15,5 @@ che <- function(oop_individual, income) {
 ## Poverty cases
 poverty_line = 52.21 * 12 # 7,112 KHR per day (* 30 days) / 4086.45 KHR per USD (2 Oct 2019)
 pov <- function(oop_individual, income) {
-  if (income > poverty_line) {
-    ifelse(income - oop_individual <= poverty_line, 1, 0)
-  } else {
-    NA
-  }
+  poverty_line <= income & income <= poverty_line + oop_individual
 }

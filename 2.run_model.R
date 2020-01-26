@@ -54,7 +54,7 @@ source('0.const_costs.R')
 ## 4. Coverage parameters --------------------------------------------------
 
 ## HEF eligibility and enrollment
-hef_quantile <- 0.2
+hef_quantile <- 0.3
 p_hef_enrollment <- 0.75
 
 ## Benefits of coverage
@@ -76,10 +76,10 @@ source('1.model_states.R')
 source('1.model_pop.R')
 
 ## Settings
-# n_population <- as.integer(5e5) # total: 16e6
-n_population <- 1000
+n_population <- as.integer(2e5) # total: 16e6
+# n_population <- 10000
 n_cycles = 45
-create_new_population <- TRUE
+create_new_population <- FALSE
 
 if (create_new_population) {
   
@@ -94,7 +94,7 @@ if (create_new_population) {
   ) %>% as.data.frame
   
   ## Matrix of state probabilities (pointers) for each individual and cycle
-  person_cycle_x <- matrix(runif(n_population * (n_cycles + 2)), n_population, (n_cycles + 2))
+  person_cycle_x <- matrix(runif(n_population * (n_cycles * 2 + 2)), n_population, (n_cycles * 2 + 2))
 
   save_df_to_csv(ichar, "ichar")
   save_object_to_rdata(person_cycle_x)
@@ -104,8 +104,8 @@ if (create_new_population) {
   } else {
     cat('Reading in existing population...\n')
     dir("output", sprintf("(ichar|person_cycle_x)_%dL.*", n_population))
-    ichar <- data.frame(readr::read_csv("output/ichar_500000L_2020-01-23_1757.csv"))
-    person_cycle_x <- load_object_from_rdata('output/person_cycle_x_500000L_2020-01-23_1757.RData')
+    ichar <- data.frame(readr::read_csv("output/ichar_200000L_2020-01-25_1855.csv"))
+    person_cycle_x <- load_object_from_rdata('output/person_cycle_x_200000L_2020-01-25_1855.RData')
 }
 
 population <- add_hef_to_pop(ichar, person_cycle_x, hef_quantile)
@@ -117,7 +117,7 @@ population <- add_hef_to_pop(ichar, person_cycle_x, hef_quantile)
 source("1.costs.R")
 source("1.dalys.R")
 source("1.FRP.R")
-source("1.model_tmat_construction.R")
+source("1.model_tvec_construction.R")
 
 ## Set up parallel computing
 foreach::getDoParWorkers()
@@ -190,7 +190,7 @@ for (strategy in strategyNames) {
       disposable_income <- as.numeric(population[i_person, 'disposable_income'])
       hef <- population[i_person, 'hef']
       hef_utilization <- population[i_person, 'hef_utilization']
-      init_state <- population[i_person, 'init_state']
+      current_state <- population[i_person, 'init_state']
       
       #  Impact of strategy on Utilization:
       ## This only impacts cost computations
@@ -202,30 +202,40 @@ for (strategy in strategyNames) {
       
       
       # Cycle through time horizon
-      for (cycle in 1:n_cycles) {
+      for (i_cycle in 1:n_cycles) {
         
-        tmat <- build_tmat(strategy = strategy, hef = hef, age = age, sex = sex)
-        
-        # Advance one step in the chain
-        current_state <- as.numeric(stateNames == init_state)
-        state_probs <- current_state %*% tmat
-        
-        # Check the validity of the transition matrix
-        if (cycle == 20 &  i_person %% 1000 == 0) {
-          mc <- new("markovchain",
-                    transitionMatrix = tmat)
-        }
+        state_probs_base <- build_tvec(current_state = current_state, strategy = 'base', hef = hef, age = age, sex = sex)
         
         # Monte Carlo simulation to determine end-cycle state
-        end_state <- colnames(state_probs)[person_cycle_x[i_person, cycle] < cumsum(state_probs)][1]
+        next_state <- draw_state_from_x(state_probs_base, person_cycle_x[i_person, i_cycle])
+        next_state_vec <- stateNames == next_state
+        
+        if (strategy != 'base') {
+          state_probs <- build_tvec(current_state = current_state, strategy = strategy, hef = hef, age = age, sex = sex)
+          
+          dp <- state_probs - state_probs_base
+          
+          if (dp[next_state_vec] < 0) {
+            
+            dp_plus <- (abs(dp) + dp) / 2
+            p_to_go <- dp_plus / sum(dp_plus)  # Normalize by all the states you might go to
+            
+            dp_minus <- (abs(dp) - dp) / 2
+            p_to_leave <- dp_minus / state_probs_base  # Normalize with the initial base prob to go to the state
+            
+            new_p <- next_state_vec * (1 - p_to_leave[next_state_vec]) + p_to_go * p_to_leave[next_state_vec]
+            
+            next_state <- draw_state_from_x(new_p, person_cycle_x[i_person, i_cycle * 2])
+          }
+        }
         
         # Compute costs
-        costs <- compute_costs(init_state, end_state, p_provider,
+        costs <- compute_costs(current_state, next_state, p_provider,
                                outpatient_costs, hospitalization_costs,
-                               p_op, p_hosp, hef, hef_utilization, dr, cycle)
+                               p_op, p_hosp, hef, hef_utilization, dr, i_cycle)
         
         # Compute DALYs
-        dalys <- compute_dalys(end_state, age, sex)
+        dalys <- compute_dalys(next_state, age, sex)
         
         # Compute CHE
         che_result <- che(costs$oop_total, income)
@@ -238,8 +248,8 @@ for (strategy in strategyNames) {
         # Store results in data frame
         results[[1]][j_counter] <- strategy
         results[[2]][j_counter] <- id
-        results[[3]][j_counter] <- cycle
-        results[[4]][j_counter] <- end_state
+        results[[3]][j_counter] <- i_cycle
+        results[[4]][j_counter] <- next_state
         results[[5]][j_counter] <- costs$cost_diagnosis
         results[[6]][j_counter] <- costs$cost_tx
         results[[7]][j_counter] <- costs$cost_complications
@@ -260,7 +270,7 @@ for (strategy in strategyNames) {
         results[[22]][j_counter] <- pov_result_disposable
         
         # Re-assign `initial` state for next cycle
-        init_state <- end_state
+        current_state <- next_state
         
         # Re-assign `age` for next cycle
         age <- age + 1
@@ -273,11 +283,11 @@ for (strategy in strategyNames) {
           break
         }
         
-        if (end_state == "dm_death") {
+        if (next_state == "dm_death") {
           break
         }
         
-        if (end_state == "other_death") {
+        if (next_state == "other_death") {
           break
         } 
       }

@@ -74,7 +74,7 @@ p_ad_if_tx <- 0.40  # Increased adherence
 
 # Main tmat function ------------------------------------------------------
 
-build_tmat <- function(strategy, hef, age, sex){
+build_tmat <- function(strategy, hef, age, sex, p_check = 0.0001){
 
   ## Set relevant probabilities
   is_strategy_screen <- strategy == "screen_only" | strategy == "screen_tx" | strategy == "screen_tx_comp"
@@ -341,6 +341,13 @@ build_tmat <- function(strategy, hef, age, sex){
   tmat["other_death", "fail"] <- 0
   tmat["other_death", "dm_death"] <- 0
   tmat["other_death", "other_death"] <- 1
+  
+  # Check the tmat sometimes
+  if (runif(1) < p_check) {
+    mc <- new("markovchain",
+            transitionMatrix = tmat)
+  }
+  
   
   return(tmat)
   

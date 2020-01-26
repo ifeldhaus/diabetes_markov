@@ -26,20 +26,20 @@ source('1.outcomes.R')
 # 1. Bootstrap simulated population -------------------------------------------------
 
 # Load population 
-simulated_population <- readr::read_csv("output/ichar_500000L_2020-01-23_1757.csv")
-simulated_population_results <- readr::read_csv('output/results_60000237L_2020-01-23_1849.csv') # 20% HEF threshold
+# simulated_population <- readr::read_csv("output/ichar_200000L_2020-01-25_1855.csv")
+# simulated_population_results <- readr::read_csv('output/results_23985420L_2020-01-25_1910.csv') # 20% HEF threshold
+
+simulated_population <- readr::read_csv("output/ichar_200000L_2020-01-25_1855.csv")
+simulated_population_results <- readr::read_csv('output/results_23985588L_2020-01-25_1927.csv') # 30% HEF threshold
 
 n_population <- nrow(simulated_population)
-
-# simulated_population <- readr::read_csv("output/ichar_200000L_2020-01-19_2306.csv")
-# simulated_population_results <- readr::read_csv('output/results_24033414L_2020-01-22_1707.csv') # 30% HEF threshold
 
 # Inflation factor based on simulated population size 
 inf.fct <- 16e6 / n_population
 
 # Sample population IDs (with replacement)
-# bootstrapped_sample_size <- 200000
-bootstrapped_sample_size <- 2e5
+bootstrapped_sample_size <- 200000
+# bootstrapped_sample_size <- 2e5
 n_bootstraps <- 1000
 
 # Set up parallel computing

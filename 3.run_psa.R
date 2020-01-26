@@ -217,7 +217,7 @@ run_diabetes_markov <- function(create_new_population = FALSE, modify_hef = FALS
   
   ## Designating matrix of state probabilities (pointers or 'fate') for each individual and cycle
   if (is.null(person_cycle_x)) {
-    person_cycle_x <- load_object_from_rdata('output/person_cycle_x_500000L_2020-01-23_1757.RData')
+    person_cycle_x <- load_object_from_rdata('output/person_cycle_x_200000L_2020-01-25_1855.RData')
   } else {
     person_cycle_x <- person_cycle_x
   }
@@ -244,7 +244,7 @@ run_diabetes_markov <- function(create_new_population = FALSE, modify_hef = FALS
   } else {
     cat('Reading in existing population...\n')
     dir("output", sprintf("(ichar|person_cycle_x)_%dL.*", n_population))
-    ichar <- data.frame(readr::read_csv("output/ichar_500000L_2020-01-23_1757.csv"))[1:n_population,]
+    ichar <- data.frame(readr::read_csv("output/ichar_200000L_2020-01-25_1855.csv"))[1:n_population,]
     
     if (modify_hef) {
       cat('Mutating HEF status.\n')

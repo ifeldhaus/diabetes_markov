@@ -19,3 +19,8 @@ initialStates_KHR <- function(age, sex, p_diet, p_oad) {
                        0, 0, 0, 0, 0, 0, 0) # CVD-related data (among diabetics) not available
   return(init_states_KHR)
 }
+
+
+draw_state_from_x <- function(state_probs, x) {
+  names(state_probs)[x < cumsum(state_probs)][1]
+}
