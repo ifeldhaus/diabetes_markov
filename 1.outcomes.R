@@ -4,6 +4,7 @@
 compute_outcomes <- function(population, results_pop, hef_threshold) {
   
   hef_threshold_amt <- quantile(population$income, hef_threshold)[[1]]
+  inf.fct <- 16e6 / nrow(population)
   
   outcomes <- results_pop %>% 
     group_by(strategy) %>% 

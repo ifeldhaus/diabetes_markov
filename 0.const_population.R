@@ -83,6 +83,24 @@ age_specific_dm_mortality_female$age <- c(25:84)
 age_specific_dm_mortality_female <- data.frame(age_specific_dm_mortality_female)
 dm_mortality <- rbind(age_specific_dm_mortality_male, age_specific_dm_mortality_female)
 
+### Age- & sex-specific diabetes prevalence
+ihme_dm_khm_prev <- read_csv("input/IHME-GBD_2017_DATA-19f45038-1_prevalence.csv")
+age_specific_dm_prevalence_male <- ihme_dm_khm_prev %>% 
+  filter(measure_name == "Prevalence", sex_name == "Male", age_name != "All Ages") %>% 
+  select(sex_name, age_name, val, upper, lower) %>% 
+  slice(rep(1:n(), each = 5)) 
+age_specific_dm_prevalence_male <- rbind(age_specific_dm_prevalence_male)
+age_specific_dm_prevalence_male$age <- c(25:69)
+age_specific_dm_prevalence_male <- data.frame(age_specific_dm_prevalence_male)
+age_specific_dm_prevalence_female <- ihme_dm_khm_prev %>% 
+  filter(measure_name == "Prevalence", sex_name == "Female", age_name != "All Ages") %>% 
+  select(sex_name, age_name, val, upper, lower) %>% 
+  slice(rep(1:n(), each = 5)) 
+age_specific_dm_prevalence_female <- rbind(age_specific_dm_prevalence_female)
+age_specific_dm_prevalence_female$age <- c(25:69)
+age_specific_dm_prevalence_female <- data.frame(age_specific_dm_prevalence_female)
+dm_prevalence <- rbind(age_specific_dm_prevalence_male, age_specific_dm_prevalence_female)
+
 ### Careseeking probabilities (at which facility, scaled based on overall probability of care utilization) (DHS 2014, Care seeking for first treatment, total population)
 p_utilization_hc <- 0.114
 p_utilization_cpa1 <- 0.025
@@ -92,4 +110,9 @@ p_provider <- c(p_utilization_hc, p_utilization_cpa1, p_utilization_cpa2, p_util
 
 ## Subsistence expenditure
 subsistence <- 47.96339 * 12 # 196K KHR (CSES 2017) / 4086.45 KHR per USD (2 Oct 2019); average monthly value per capital, 2017
+
+## HEF defaults
+p_hef_enrollment <- 0.75
+p_hef_utilization <- 1 # 0.16 ## HEF utilization at point of care
+coverage <- 1
 

@@ -21,7 +21,7 @@ library(xtable)
 
 ## Load results
 results <- readr::read_csv('output/results_29446594L_2020-01-30_0853.csv')
-# results_threshold30_coverage80 <- readr::read_csv('output/results_24583030L_2020-01-29_2033.csv')
+# results <- readr::read_csv('output/results_29446594L_2020-01-30_1715.csv') # non-discounted costs
 
 # Load population and assign HEF status
 population <- readr::read_csv("output/ichar_240000L_2020-01-30_0833.csv")
@@ -100,12 +100,14 @@ prevalence <- (n_diabetes / inf.fct) / nrow(population)
 sex_scale <- 1 / (prop.table(table(population20$sex)) / 0.5)
 
 # All results
-results <- rbind(results20_80, results20_100, results30_80, results30_100) %>% 
-  group_by(sex) %>% 
+results <- rbind(results20_80, results20_100, results30_80, results30_100) %>%
+  group_by(sex) %>%
   mutate(
     sex_scale = ifelse(sex == "Female", sex_scale['Female'][[1]],
                        ifelse(sex == "Male", sex_scale['Male'][[1]], 1))
   )
+
+# results <- rbind(results20_80, results30_80) # for non-discounted
 
 # HEF eligible by group
 n_hef_eligible_income20 <- population20 %>% group_by(income_quintile) %>% summarise(n_hef_eligible = sum(hef) * inf.fct)
@@ -226,6 +228,11 @@ incr_costs <- results %>%
 incr_costs$strategy <- ordered(incr_costs$strategy,
                                levels = c("base", "screen_only", "tx_only", "screen_tx", "comp_only", "tx_comp", "screen_tx_comp"),
                                labels = c("Current standard", "Diagnostics only", "Drug therapy only", "Diagnostics + drug therapy", "Complications only", "Drug therapy + complications", "Diagnostics + drug therapy + complications"))
+
+incr_costs.table <- incr_costs %>% select(strategy, threshold, cost_total, incr_cost_total) 
+incr_costs.table[,3:4] <- format(incr_costs.table[,3:4], big.mark = ",")
+print(xtable::xtable(incr_costs.table, digits = 0), include.rownames = FALSE)
+
 incr_costs$threshold <- factor(incr_costs$threshold,
                                levels = c("20%", "30%"),
                                labels = c("Poorest 20% eligible for HEF", "Poorest 30% eligible for HEF"))
@@ -257,11 +264,12 @@ incr_costs_by_type$cost <- ordered(incr_costs_by_type$cost,
                                    labels = c("Screening + \nLaboratory", "Medications", "Service Utilization \nfor Complications"))
 ggplot(data = incr_costs_by_type %>% 
          filter(coverage == "HEF coverage: 80%") %>% 
+         filter(threshold == "Poorest 20% eligible for HEF") %>% 
          filter(strategy != "Current standard"), 
        aes(x = strategy, y = value / n_hef_eligible, fill = cost)) +
   geom_bar(stat = "identity", position = "stack") + 
   theme_bw() + 
-  facet_wrap(.~threshold) +
+  # facet_wrap(.~threshold) +
   # scale_fill_manual(values = wes_palette("FantasticFox1", n = 3)) + 
   scale_fill_manual(values = cbp1) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -411,7 +419,7 @@ incr_health_state %>%
   mutate(dalys_averted = ifelse(incr_dm_dalys < 0, -incr_dm_dalys, 0)) %>% 
   group_by(strategy, threshold) %>% 
   mutate(dalys_averted_sum = sum(dalys_averted)) %>% 
-  filter(state == "ang") %>% 
+  filter(state == "dm_death") %>% 
   mutate(prop_dalys_averted = dalys_averted / dalys_averted_sum) %>% 
   select(strategy, state, threshold, dalys_averted, dalys_averted_sum, prop_dalys_averted) %>% View
 
@@ -459,7 +467,7 @@ incr_health_state_sex %>%
   mutate(dalys_averted = ifelse(incr_dm_dalys < 0, -incr_dm_dalys, 0)) %>% 
   group_by(strategy, sex, threshold) %>% 
   mutate(dalys_averted_sum = sum(dalys_averted)) %>% 
-  filter(state == "neuro" & sex == "Male") %>% 
+  filter(state == "dm_death" & sex == "Female") %>% 
   mutate(prop_dalys_averted = dalys_averted / dalys_averted_sum) %>% 
   select(strategy, state, sex, threshold, dalys_averted, dalys_averted_sum, prop_dalys_averted) %>% View
 
@@ -559,6 +567,12 @@ incr_health_by_sex$n_hef_eligible <- ifelse(incr_health_by_sex$threshold == "20%
 incr_health_by_sex$strategy <- ordered(incr_health_by_sex$strategy,
                                        levels = c("base", "screen_only", "tx_only", "screen_tx", "comp_only", "tx_comp", "screen_tx_comp"),
                                        labels = c("Current standard", "Diagnostics only", "Drug therapy only", "Diagnostics + drug therapy", "Complications only", "Drug therapy + complications", "Diagnostics + drug therapy + complications"))
+incr_health_by_sex$threshold <- ordered(incr_health_by_sex$threshold, 
+                                        levels = c("20%", "30%"),
+                                        labels = c("Poorest 20% eligible for HEF", "Poorest 30% eligible for HEF"))
+incr_health_by_sex$coverage <- ordered(incr_health_by_sex$coverage, 
+                                       levels = c("80%", "100%"),
+                                       labels = c("HEF coverage: 80%", "HEF coverage: 100%"))
 
 ggplot(data = incr_health_by_sex %>% filter(!(strategy %in% c("Current standard", "Complications only"))), 
        aes(x = strategy, y = -incr_dm_dalys / n_hef_eligible, fill = sex)) +
@@ -907,6 +921,10 @@ print(xtable::xtable(icer.dalys.table, digits = 0), include.rownames = FALSE)
 # icer.dalys$threshold <- factor(icer.dalys$threshold, 
 #                                levels = c("20%", "30%"),
 #                                labels = c("Poorest 20% eligible for HEF", "Poorest 30% eligible for HEF"))
+icer.dalys <- cbind(incr_costs, incr_health[4:15]) %>% 
+  mutate(
+    icer_dalys = incr_cost_total / -incr_dm_dalys
+  )
 ggplot(icer.dalys %>% filter(coverage == "HEF coverage: 80%") %>% filter(!is.na(strategy)), 
        aes(x = -incr_dm_dalys, y = incr_cost_total / n_hef_eligible)) + 
   geom_point(aes(color = strategy), size = 4) + 
@@ -935,9 +953,9 @@ icer.dalys.sex <- merge(incr_costs_by_sex, incr_health_by_sex, by = c("strategy"
   mutate(
     icer_dalys_sex = incr_cost_total / -incr_dm_dalys
   )
-icer.dalys.sex$threshold <- ordered(icer.dalys.sex$threshold, 
-                                    levels = c("20%", "30%"),
-                                    labels = c("Poorest 20% eligible for HEF", "Poorest 30% eligible for HEF"))
+# icer.dalys.sex$threshold <- ordered(icer.dalys.sex$threshold, 
+#                                     levels = c("20%", "30%"),
+#                                     labels = c("Poorest 20% eligible for HEF", "Poorest 30% eligible for HEF"))
 
 icer.dalys.sex.plot <- dplyr::bind_rows(icer.dalys, icer.dalys.sex) %>% 
   select(strategy, sex, threshold, incr_cost_total, incr_dm_dalys, n_hef_eligible) %>% 
@@ -945,9 +963,9 @@ icer.dalys.sex.plot <- dplyr::bind_rows(icer.dalys, icer.dalys.sex) %>%
     sex = ifelse(is.na(sex), "Total", sex)
   )
 
-ggplot(icer.dalys.sex.plot %>% filter(!is.na(strategy)), aes(x = -incr_dm_dalys, y = incr_cost_total / n_hef_eligible)) + 
-  geom_point(aes(shape = strategy, color = strategy), size = 6) + 
-  facet_grid(sex ~ threshold) + 
+ggplot(icer.dalys.sex.plot %>% filter(!is.na(strategy)) %>% filter(threshold == "Poorest 20% eligible for HEF"), aes(x = -incr_dm_dalys, y = incr_cost_total / n_hef_eligible)) + 
+  geom_point(aes(shape = strategy, color = strategy), size = 4) + 
+  facet_grid(sex ~ .) + 
   theme_bw() + 
   scale_color_npg(name = "Strategy", 
                   labels = c("Current standard", "Diagnostics only", "Drug therapy only", "Diagnostics + drug therapy", "Complications only", "Drug therapy + complications", "Diagnostics + drug therapy + complications")) + 
@@ -965,7 +983,7 @@ ggplot(icer.dalys.sex.plot %>% filter(!is.na(strategy)), aes(x = -incr_dm_dalys,
                      breaks = scales::pretty_breaks(n = 10)) + 
   geom_hline(aes(yintercept = 0)) +
   geom_vline(aes(xintercept = 0))
-ggsave("figures/icer_dalys_sex.png")
+ggsave("figures/icer_dalys_sex.png", width = 297 * (2/3), height = 210, units = "mm")
 
 # # OOP
 incr_oop$threshold <- ordered(incr_oop$threshold, 
@@ -1004,7 +1022,7 @@ icer.oop.plot$coverage <- icer.oop.plot$coverage <- ordered(icer.oop.plot$covera
                                                   labels = c("100%", "80%"))
 
 ggplot(icer.oop.plot %>% filter(strategy != 'Current standard'), aes(x = -incr_oop_total / 1e6, y = incr_cost_total / n_hef_eligible)) +
-  geom_point(aes(color = strategy, shape = coverage), size = 6) +
+  geom_point(aes(color = strategy, shape = coverage), size = 4) +
   geom_point(data = icer.oop.plot %>% filter(strategy == 'Current standard'), aes(color = strategy, shape = strategy), size = 6) + 
   facet_grid(sex ~ threshold) +
   theme_bw() +
@@ -1020,7 +1038,7 @@ ggplot(icer.oop.plot %>% filter(strategy != 'Current standard'), aes(x = -incr_o
   scale_x_continuous(labels = scales::comma) +
   geom_hline(aes(yintercept = 0)) +
   geom_vline(aes(xintercept = 0))
-ggsave("figures/icer_oop.png")
+ggsave("figures/icer_oop.png", width = 297, height = 210, units = "mm")
 
 ## Financial risk protection
 incr_frp$coverage <- ordered(incr_frp$coverage,
@@ -1046,10 +1064,10 @@ icer.frp.plot$coverage <- ordered(icer.frp.plot$coverage,
                                   levels = c("HEF coverage: 100%", "HEF coverage: 80%"),
                                   labels = c("100%", "80%"))
 
-ggplot(icer.frp.plot %>% filter(!is.na(strategy)) %>% filter(strategy != 'Current standard'), aes(x = -incr_che40 / 1e3, y = incr_cost_total / n_hef_eligible)) + 
-  geom_point(aes(color = strategy, shape = coverage), size = 6) + 
+ggplot(icer.frp.plot %>% filter(!is.na(strategy)) %>% filter(strategy != 'Current standard') %>% filter(threshold == "Poorest 20% eligible for HEF"), aes(x = -incr_che40 / 1e3, y = incr_cost_total / n_hef_eligible)) + 
+  geom_point(aes(color = strategy, shape = coverage), size = 4) + 
   geom_point(data = icer.frp.plot %>% filter(strategy == 'Current standard'), aes(color = strategy, shape = strategy), size = 6) + 
-  facet_grid(sex ~ threshold) + 
+  facet_grid(sex ~ .) + 
   theme_bw() + 
   scale_color_npg(drop = FALSE) + 
   scale_shape_manual(values = c(16, 1, 4)) +
@@ -1063,10 +1081,39 @@ ggplot(icer.frp.plot %>% filter(!is.na(strategy)) %>% filter(strategy != 'Curren
   scale_x_continuous(labels = scales::comma) + 
   geom_hline(aes(yintercept = 0)) +
   geom_vline(aes(xintercept = 0))
-ggsave("figures/icer_frp.png")
+ggsave("figures/icer_frp.png", width = 297 * (2/3), height = 210, units = "mm")
+
+icer.frp.govt.plot <- icer.frp.plot %>% 
+  select(strategy, threshold, coverage, sex, n_hef_eligible, incr_cost_total, incr_che40) %>% 
+  mutate(
+    coverage_value = ifelse(coverage == "100%", 1, 0.8),
+    incr_cost_government = incr_cost_total * coverage_value
+  )
+
+ggplot(icer.frp.govt.plot %>% filter(!is.na(strategy)) %>% 
+         filter(strategy != 'Current standard') %>% 
+         filter(threshold == "Poorest 20% eligible for HEF"), 
+       aes(x = -incr_che40 / 1e3, y = incr_cost_government / n_hef_eligible)) + 
+  geom_point(aes(color = strategy, shape = coverage), size = 4) + 
+  geom_point(data = icer.frp.govt.plot %>% filter(strategy == 'Current standard'), aes(color = strategy, shape = strategy), size = 6) + 
+  facet_grid(sex ~ .) + 
+  theme_bw() + 
+  scale_color_npg(drop = FALSE) + 
+  scale_shape_manual(values = c(16, 1, 4)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        strip.text.x = element_text(size = 12.5),
+        strip.text.y = element_text(size = 12.5)) + 
+  labs(x = "Cases of CHE averted (thousands)", y = "Incremental government costs per person eligible for HEF (2019 USD)", color = "Strategy", shape = "HEF Coverage") + 
+  scale_y_continuous(labels = scales::comma) + 
+  scale_x_continuous(labels = scales::comma) + 
+  geom_hline(aes(yintercept = 0)) +
+  geom_vline(aes(xintercept = 0))
+ggsave("figures/icer_frp_government.png", width = 297 * (2/3), height = 210, units = "mm")
 
 ggplot(icer.frp.plot %>% filter(!is.na(strategy)) %>% filter(threshold == "Poorest 30% eligible for HEF") %>% filter(strategy != 'Current standard'), aes(x = -incr_pov / 1e3, y = incr_cost_total / n_hef_eligible)) + 
-  geom_point(aes(color = strategy, shape = coverage), size = 6) + 
+  geom_point(aes(color = strategy, shape = coverage), size = 4) + 
   geom_point(data = icer.frp.plot %>% filter(threshold == "Poorest 30% eligible for HEF") %>% filter(strategy == 'Current standard'), aes(color = strategy, shape = strategy), size = 6) + 
   facet_grid(sex ~ .) + 
   theme_bw() + 
@@ -1082,7 +1129,7 @@ ggplot(icer.frp.plot %>% filter(!is.na(strategy)) %>% filter(threshold == "Poore
   scale_x_continuous(labels = scales::comma) + 
   geom_hline(aes(yintercept = 0)) +
   geom_vline(aes(xintercept = 0))
-ggsave("figures/icer_pov.png")
+ggsave("figures/icer_pov.png", width = 297 * (2/3), height = 210, units = "mm")
 
 # Print table
 icer.che$threshold <- factor(icer.che$threshold, 
@@ -1170,10 +1217,76 @@ ggplot(outcomes_by_cycle_plot2 %>% filter(strategy != "Current standard") %>% fi
   scale_x_continuous(labels = scales::comma, 
                      breaks = scales::pretty_breaks(n = 10)) + 
   geom_hline(aes(yintercept = 0), alpha = 0.4) 
-ggsave("figures/outcomes_over_time_coverage100.png")
+ggsave("figures/outcomes_over_time_coverage100.png", width = 210, height = 297, units = "mm")
+
+outcomes_by_cycle_plot3 <- outcomes_by_cycle %>% 
+  select(strategy, threshold, coverage, cycle, incr_cost_total, incr_dm_dalys, incr_che40) %>% 
+  mutate(
+    incr_cost_total = incr_cost_total / 1e6,
+    incr_dm_dalys = -incr_dm_dalys,
+    incr_che40 = -incr_che40
+  ) %>% 
+  gather(key = "outcome", value = "value", -c(strategy, threshold, coverage, cycle))
+
+outcomes_by_cycle_plot3$strategy <- ordered(outcomes_by_cycle_plot3$strategy,
+                                            levels = c("base", "screen_only", "tx_only", "screen_tx", "comp_only", "tx_comp", "screen_tx_comp"),
+                                            labels = c("Current standard", "Diagnostics only", "Drug therapy only", "Diagnostics + drug therapy", "Complications only", "Drug therapy + complications", "Diagnostics + drug therapy + complications"))
+outcomes_by_cycle_plot3$threshold <- factor(outcomes_by_cycle_plot3$threshold, 
+                                            levels = c("20%", "30%"),
+                                            labels = c("Poorest 20% eligible for HEF", "Poorest 30% eligible for HEF"))
+outcomes_by_cycle_plot3$coverage <- ordered(outcomes_by_cycle_plot3$coverage, 
+                                            levels = c("80%", "100%"),
+                                            labels = c("HEF coverage: 80%", "HEF coverage: 100%"))
+outcomes_by_cycle_plot3$outcome <- ordered(outcomes_by_cycle_plot3$outcome,
+                                           levels = c("incr_cost_total", "incr_dm_dalys", "incr_che40"),
+                                           labels = c("Incremental total costs (millions, 2019 USD)", "Diabetes-related DALYs averted", "Cases of CHE averted"))
+
+ggplot(outcomes_by_cycle_plot3 %>% 
+         filter(strategy != "Current standard") %>% 
+         filter(coverage == "HEF coverage: 100%") %>% 
+         filter(threshold == "Poorest 20% eligible for HEF"), 
+       aes(x = cycle, y = value, color = strategy)) + 
+  geom_smooth(se = FALSE, size = 0.8) + 
+  facet_grid(outcome ~ ., scales = "free_y") +
+  theme_bw() + 
+  scale_color_npg(drop = FALSE) + 
+  labs(x = "Duration of time (model year)", y = NULL, color = "Strategy") +
+  theme(axis.text = element_text(size = 15),
+        axis.title = element_text(size = 16),
+        strip.text.x = element_text(size = 12.5),
+        strip.text.y = element_text(size = 12.5),
+        legend.text = element_text(size = 12.5),
+        legend.title = element_text(size = 16)) +
+  scale_y_continuous(labels = scales::comma) + 
+  scale_x_continuous(labels = scales::comma, 
+                     breaks = scales::pretty_breaks(n = 10)) + 
+  geom_hline(aes(yintercept = 0), alpha = 0.4) 
+ggsave("figures/outcomes_over_time_coverage100.png", width = 210, height = 297, units = "mm")
+
+ggplot(outcomes_by_cycle_plot3 %>% 
+         filter(strategy != "Current standard") %>% 
+         filter(coverage == "HEF coverage: 100%"), 
+       aes(x = cycle, y = value, color = strategy)) + 
+  geom_smooth(se = FALSE, size = 0.8) + 
+  facet_grid(outcome ~ threshold, scales = "free_y") +
+  theme_bw() + 
+  scale_color_npg(drop = FALSE) + 
+  labs(x = "Duration of time (model year)", y = NULL, color = "Strategy") +
+  theme(axis.text = element_text(size = 15),
+        axis.title = element_text(size = 16),
+        strip.text.x = element_text(size = 12.5),
+        strip.text.y = element_text(size = 12.5),
+        legend.text = element_text(size = 12.5),
+        legend.title = element_text(size = 16)) +
+  scale_y_continuous(labels = scales::comma) + 
+  scale_x_continuous(labels = scales::comma, 
+                     breaks = scales::pretty_breaks(n = 10)) + 
+  geom_hline(aes(yintercept = 0), alpha = 0.4) 
+ggsave("figures/outcomes_over_time_coverage100_2.png", width = 210, height = 297, units = "mm")
 
 npg_palette <- pal_npg("nrc")(7)
 npg_palette2 <- npg_palette[c(2, 3, 4, 6, 7)]
+npg_palette3 <- npg_palette[c(1, 5, 6, 7)]
 
 ggplot(outcomes_by_cycle_plot2 %>% 
          filter(strategy != "Current standard") %>% 
@@ -1195,7 +1308,7 @@ ggplot(outcomes_by_cycle_plot2 %>%
   scale_x_continuous(labels = scales::comma, 
                      breaks = scales::pretty_breaks(n = 10)) + 
   geom_hline(aes(yintercept = 0), alpha = 0.4)
-ggsave("figures/icer_dalys_over_time_coverage100.png")
+ggsave("figures/icer_dalys_over_time_coverage100.png", width = 297, height = 210 / 2, units = "mm")
 
 ggplot(outcomes_by_cycle_plot2 %>% 
          filter(strategy != "Current standard") %>% 
@@ -1217,7 +1330,7 @@ ggplot(outcomes_by_cycle_plot2 %>%
   scale_x_continuous(labels = scales::comma, 
                      breaks = scales::pretty_breaks(n = 10)) + 
   geom_hline(aes(yintercept = 0), alpha = 0.4) 
-ggsave("figures/icer_che_over_time_coverage100.png")
+ggsave("figures/icer_che_over_time_coverage100.png", width = 297, height = 210 / 2, units = "mm")
 
 # p1 <- time_plot + facet_grid(outcome ~ threshold, scales = "free") + coord_cartesian(ylim = c(-30e3,50e3))
 # g1 <- ggplotGrob(p1)
@@ -1264,6 +1377,12 @@ oop_medical_costs_by_cycle$strategy <- ordered(oop_medical_costs_by_cycle$strate
 oop_medical_costs_by_cycle$threshold <- factor(oop_medical_costs_by_cycle$threshold, 
                                                levels = c("20%", "30%"),
                                                labels = c("Poorest 20% eligible for HEF", "Poorest 30% eligible for HEF"))
+
+# Mean annual costs
+oop_medical_costs_by_cycle %>% filter(strategy == "Current standard") %>% group_by(threshold, coverage) %>% summarise(mean_medical_annual_rescaled = mean(oop_medical_rescaled))
+
+# Mean annual costs per capita (HEF eligible)
+oop_medical_costs_by_cycle %>% select(strategy, threshold, coverage, cycle, oop_medical_per_capita) %>% group_by(strategy, threshold, coverage) %>% summarise(mean_oop_medical_per_capita = mean(oop_medical_per_capita))
 
 p2 <- ggplot(oop_medical_costs_by_cycle %>% filter(coverage == "100%"), aes(x = cycle, y = cumsum_oop_medical / 1e6, color = strategy)) + 
   # geom_smooth(se = FALSE) + 
@@ -1357,6 +1476,30 @@ ggplot(oop_medical_costs_by_cycle_plot %>%
                      breaks = scales::pretty_breaks(n = 10))
 # ggsave("figures/direct_medical_government.png")
 
+# Cumulative only
+ggplot(oop_medical_costs_by_cycle_plot %>% 
+         filter(coverage == "100%") %>% 
+         # filter(strategy != "Current standard") %>% 
+         filter(!c(outcome %in% c("Annual (unadjusted)", "Annual per capita", "Annual", "Covered by HEF"))), 
+       aes(x = cycle, y = value / 1e6, color = strategy)) + 
+  # geom_smooth(se = FALSE) +
+  geom_line() +
+  facet_grid(. ~ threshold, scales = "free_y") + 
+  theme_bw() + 
+  scale_color_npg() +
+  # scale_color_manual(values = npg_palette[2:7]) + 
+  labs(x = "Duration of time (model year)", y = "Direct medical costs (millions, 2019 USD)", color = "Strategy") +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        strip.text.x = element_text(size = 12.5),
+        strip.text.y = element_text(size = 12.5),
+        legend.text = element_text(size = 12.5),
+        legend.title = element_text(size = 14)) +
+  scale_y_continuous(labels = scales::comma) + 
+  scale_x_continuous(labels = scales::comma, 
+                     breaks = scales::pretty_breaks(n = 10))
+ggsave("figures/direct_medical_government.png")
+
 n_diabetes <- results20_80 %>% filter(state != "healthy") %>% filter(state != "other_death") %>% group_by(id) %>% summarise(n = n()) %>% nrow() * inf.fct
 n_diabetes_sex <- results20_80 %>% filter(state != "healthy") %>% filter(state != "other_death") %>% group_by(id, sex) %>% summarise(n = n()) %>% 
   ungroup %>% group_by(sex) %>% summarise(n_diabetes = n() * inf.fct)
@@ -1379,6 +1522,27 @@ diabetes_prevalence <- results %>%
   mutate(
     prevalence = n_diabetes / remaining_population
   )
+diabetes_prevalence$strategy <- ordered(diabetes_prevalence$strategy,
+                                               levels = c("base", "screen_only", "tx_only", "screen_tx", "comp_only", "tx_comp", "screen_tx_comp"),
+                                               labels = c("Current standard", "Diagnostics only", "Drug therapy only", "Diagnostics + drug therapy", "Complications only", "Drug therapy + complications", "Diagnostics + drug therapy + complications"))
+diabetes_prevalence$threshold <- factor(diabetes_prevalence$threshold, 
+                                               levels = c("20%", "30%"),
+                                               labels = c("Poorest 20% eligible for HEF", "Poorest 30% eligible for HEF"))
+
+oop_medical_costs_by_cycle_with_prevalence <- merge(oop_medical_costs_by_cycle, diabetes_prevalence, by = c("strategy", "threshold", "coverage", "cycle")) %>% 
+  mutate(
+    oop_medical_per_diabetes = oop_medical / (n_diabetes * inf.fct)
+  )
+oop_medical_costs_by_cycle_with_prevalence %>% 
+  group_by(strategy, threshold, coverage) %>% 
+  summarise(
+    mean_oop_medical_per_capita = mean(oop_medical_per_capita),
+    mean_oop_medical_per_diabetes = mean(oop_medical_per_diabetes)
+    ) %>% 
+  ungroup %>% 
+  mutate(
+    incr_mean_oop_medical_per_diabetes = mean_oop_medical_per_diabetes[strategy == 'Current standard'] - mean_oop_medical_per_diabetes
+  ) %>% View
 
 ggplot(diabetes_prevalence, aes(x = cycle, y = prevalence, color = strategy)) + 
   geom_line() + 
@@ -1388,11 +1552,9 @@ ggplot(diabetes_prevalence, aes(x = cycle, y = prevalence, color = strategy)) +
 # By age group ------------------------------------------------------------
 
 ## Add age to results data frame and filter by HEF eligible population
-results20_80_age <- merge(results_threshold20_coverage80, population20 %>% select(id, age_start, income, hef, threshold), by = "id") %>% 
-  filter(income < hef_threshold20) %>% 
+results20_80_age <- merge(results %>% filter(id %in% population20$id), population20 %>% select(id, age_start, income, hef, threshold), by = "id") %>% 
   mutate(coverage = "80%")
-results30_80_age <- merge(results_threshold30_coverage80, population30 %>% select(id, age_start, income, hef, threshold), by = "id") %>% 
-  filter(income < hef_threshold30) %>% 
+results30_80_age <- merge(results %>% filter(id %in% population30$id), population30 %>% select(id, age_start, income, hef, threshold), by = "id") %>% 
   mutate(coverage = "80%")
 
 results_age <- rbind(results20_80_age, results30_80_age) %>% 
@@ -1421,12 +1583,12 @@ results_age <- rbind(results20_80_age, results30_80_age) %>%
 results_age_plot <- results_age %>% ungroup
 results_age_plot$strategy <- ordered(results_age_plot$strategy,
                                      levels = c("base", "screen_only", "screen_tx", "screen_tx_comp", "tx_only", "tx_comp", "comp_only"),
-                                     labels = c("Current standard", "Diagnosis only", "Diagnosis + treatment", "Diagnosis + treatment +\ncomplications", "Treatment only", "Treatment + complications", "Complications only"))
+                                     labels = c("Current standard", "Diagnostics only", "Drug therapy only", "Diagnostics + drug therapy", "Complications only", "Drug therapy + complications", "Diagnostics + drug therapy + \ncomplications"))
 results_age_plot$state <- ordered(results_age_plot$state, 
                                   levels = c("healthy", "diabetes", "notx", "oad", "ins", "neuro", "retino", "nephro", "pvd", "ang", "mi", "stroke", "fail", "dm_death", "other_death"),
                                   labels = c("Healthy", "Undiagnosed diabetes", "Diet consultation", "OAD", "Insulin", "Neuropathy", "Retinopathy", "Nephropathy", "PVD", "Angina pectoris", "Myocardial infarction", "Stroke", "Heart failure", "Death", "All-cause death"))
 
-ggplot(results_age_plot %>% filter(!c(state %in% c("Healthy", "All-cause death"))) %>% filter(threshold == "20%"), 
+ggplot(results_age_plot %>% filter(!c(state %in% c("Healthy", "All-cause death"))) %>% filter(threshold == "20%") %>% filter(strategy %in% c("Current standard", "Diagnostics only", "Drug therapy only", "Diagnostics + drug therapy")), 
        aes(x = state, y = n_state_per_age_group, fill = strategy)) + 
   geom_bar(stat = "identity", position = position_dodge()) + 
   facet_grid(age_group ~ strategy) + 
@@ -1440,16 +1602,50 @@ ggplot(results_age_plot %>% filter(!c(state %in% c("Healthy", "All-cause death")
         strip.text.y = element_text(size = 12.5),
         legend.text = element_text(size = 12.5),
         legend.title = element_text(size = 14),
-        plot.margin = unit(c(1,1,1,1.5),"cm")) 
-ggsave("figures/states_by_age.png")
+        plot.margin = unit(c(1,1,1,1.5),"cm"), 
+        legend.position = "top") 
+ggsave("figures/states_by_age1.png", width = 297, height = 210, units = "mm")
 
+ggplot(results_age_plot %>% filter(!c(state %in% c("Healthy", "All-cause death"))) %>% filter(threshold == "20%") %>% filter(strategy %in% c("Current standard", "Complications only", "Drug therapy + complications", "Diagnostics + drug therapy + \ncomplications")), 
+       aes(x = state, y = n_state_per_age_group, fill = strategy)) + 
+  geom_bar(stat = "identity", position = position_dodge()) + 
+  facet_grid(age_group ~ strategy) + 
+  theme_bw() + 
+  scale_fill_manual(values = npg_palette3) +
+  labs(x = "State", y = "Number of individuals by age group", fill = "Strategy") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        strip.text.x = element_text(size = 12.5),
+        strip.text.y = element_text(size = 12.5),
+        legend.text = element_text(size = 12.5),
+        legend.title = element_text(size = 14),
+        plot.margin = unit(c(1,1,1,1.5),"cm"),
+        legend.position = "top") 
+ggsave("figures/states_by_age2.png", width = 297, height = 210, units = "mm")
+
+# Diabetes prevalence by age
+n_diabetes_age <- results_age %>%
+  filter(state != "healthy") %>% 
+  filter(state != "other_death") %>% 
+  group_by(strategy, threshold, age_group) %>% 
+  summarise(n_diabetes = sum(n_state_per_age_group) * inf.fct) %>% 
+  spread(key = strategy, value = n_diabetes)
+# prevalence <- (n_diabetes / inf.fct) / nrow(population)
+n_diabetes_age_plot <- results_age %>%
+  filter(state != "healthy") %>% 
+  filter(state != "other_death") %>% 
+  group_by(strategy, threshold, age_group) %>% 
+  summarise(n_diabetes = sum(n_state_per_age_group) * inf.fct)
+
+ggplot(n_diabetes_age_plot, aes(x = age_group, y = n_diabetes, fill = strategy)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  facet_grid(. ~ threshold)
 
 
 # Population table --------------------------------------------------------
 library(qwraps2)
-population20_eligible <- population20 %>% filter(income < hef_threshold20) %>% mutate(threshold = "20%")
-population30_eligible <- population30 %>% filter(income < hef_threshold30) %>% mutate(threshold = "30%")
-pop_profile <- rbind(population20_eligible, population30_eligible) %>% 
+pop_profile <- rbind(population20, population30) %>% 
   mutate(
     age_group = ifelse(age_start <= 30, "26-30",
                        ifelse(age_start > 30 & age_start <= 35, "31-35",
@@ -1479,10 +1675,10 @@ profile <- list(
          "Undiagnosed diabetes" = ~ qwraps2::n_perc(.data$init_state == "diabetes", digits = 0),
          "Diet/lifestyle consultation (no prescribed treatment)" = ~ qwraps2::n_perc(.data$init_state == "notx", digits = 0),
          "Oral antidiabetic therapy" = ~ qwraps2::n_perc(.data$init_state == "oad", digits = 0),
-         "Insulin therapy" = ~ qwraps2::n_perc(.data$init_state == "ins", digits = 0),
-         "Neuropathy" = ~ qwraps2::n_perc(.data$init_state == "neuro", digits = 0),
-         "Retinopathy" = ~ qwraps2::n_perc(.data$init_state == "retino", digits = 0),
-         "Nephropathy" = ~ qwraps2::n_perc(.data$init_state == "nephro", digits = 0)),
+         "Insulin therapy" = ~ qwraps2::n_perc(.data$init_state == "ins", digits = 1),
+         "Neuropathy" = ~ qwraps2::n_perc(.data$init_state == "neuro", digits = 1),
+         "Retinopathy" = ~ qwraps2::n_perc(.data$init_state == "retino", digits = 2),
+         "Nephropathy" = ~ qwraps2::n_perc(.data$init_state == "nephro", digits = 2)),
   "HEF status" = 
     list("Enrolled" = ~ qwraps2::n_perc(.data$hef == 1, digits = 0))
 )

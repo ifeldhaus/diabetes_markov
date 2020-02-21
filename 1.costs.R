@@ -5,7 +5,7 @@ discount_costs <- function(value, dr, time) {
   return(final_amt)
 }
 
-compute_costs <- function(current_state, next_state, p_provider, outpatient_costs, hospitalization_costs,
+compute_costs <- function(strategy, current_state, next_state, p_provider, outpatient_costs, hospitalization_costs,
                           p_op, p_hosp, hef, hef_utilization, dr, i_cycle) {
   
   if (next_state == "healthy" | next_state == "diabetes" | next_state == "dm_death" | next_state == "other_death") {

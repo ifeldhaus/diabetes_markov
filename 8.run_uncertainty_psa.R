@@ -1,9 +1,10 @@
 ##################################
 #### Extended cost-effectiveness analysis of interventions for diabetes under diverse health coverage in Cambodia
-#### 4.3 Probabilistic sensitivity analysis
+#### 8.0 Uncertainty (+ PSA)
 #### Copyright Isabelle Feldhaus
-#### 21 January 2020
+#### 28 January 2020
 ##################################
+
 
 # 0. Setup ----------------------------------------------------------------
 
@@ -30,7 +31,7 @@ source('1.outcomes.R')
 # 1. Parameter Distributions ---------------------------------------------
 
 # Define parameter distributions in dataframe
-n_size = 10
+n_size = 50
 
 e_oad <- function() rbeta(n_size, 18.98899,  8.935997)
 
@@ -90,11 +91,11 @@ modified_parameters_matrix <- tibble(
   p_utilization_cpa1 = rbeta(n_size, 10.94302, 574.0505),
   p_utilization_cpa2 = rbeta(n_size, 11.86287, 557.8433),
   p_utilization_cpa3 = rbeta(n_size, 7.304759, 190.2188),
-
+  
   p_op_hef = rbeta(n_size, 0.9166912, 4.412909),
   p_op_non_hef = rbeta(n_size, 0.4202172, 3.171383),
   p_hosp_base = rbeta(n_size, 8.85, 581.15),
-
+  
   c_screening = rlnorm(n_size, -0.231791, 0.8088278),
   c_laboratory = rlnorm(n_size, -0.02394995,0.8573677),
   c_oad = rlnorm(n_size, 3.2449579, 0.4055468),
@@ -123,12 +124,13 @@ modified_parameters_matrix <- tibble(
 
 # 2. Get population -------------------------------------------------------
 
-n_population <- 100000
+n_population <- 40000
+BASE_HEF_QUANTILE <- 0.3
 hef_quantile <- 0.2
 
 cat('Reading in existing population...\n')
-ichar <- data.frame(readr::read_csv("output/ichar_200000L_2020-01-25_1855.csv"))[1:n_population,]
-person_cycle_x <- load_object_from_rdata('output/person_cycle_x_200000L_2020-01-25_1855.RData')[1:n_population,]
+ichar <- data.frame(readr::read_csv("output/ichar_240000L_2020-01-30_0833.csv"))[1:n_population,]
+person_cycle_x <- load_object_from_rdata('output/person_cycle_x_240000L_2020-01-30_0833.RData')[1:n_population,]
 
 n_cycles <- (dim(person_cycle_x)[2] - 2) / 2
 population <- add_hef_to_pop(ichar, person_cycle_x, hef_quantile)
@@ -147,7 +149,7 @@ i_run <- 1
 ### Function: `run_diabetes_markov`
 # cbind(parameters, careseeking, costs, p_treatment, p_utilization)
 outcomes_by_run <- apply(modified_parameters_matrix, 1, function(parameters) {
-                         
+  
   cat(sprintf('Run %d / %d\n', i_run, n_size))
   
   for (i in 1:length(parameters)) { assign(names(parameters)[i], parameters[[i]]) }
@@ -169,17 +171,53 @@ outcomes_by_run <- apply(modified_parameters_matrix, 1, function(parameters) {
   
   results <- run_model(population, person_cycle_x)
   print(dim(results))
+  
+  parameter_set_outcomes <- compute_outcomes(population, merge(results, population, by = 'id'), hef_threshold = hef_quantile)
+  
+  cat("Bootstrapping...")
+  bootstrapped_sample_size <- n_population
+  n_bootstraps <- 100
+  nested_simulation_results_pop_per_id <- merge(results, population, by = 'id') %>% group_by(id) %>% nest
+  rm(results)
+  gc()
+  
+  bootstrap_results <- foreach::foreach(bootstrap = 1:n_bootstraps) %dopar% {
+    
+    # Tracking progress 
+    cat('.')
+    
+    # Bootstrap population IDs & select results
+    bootstrapped_ids <- sample(1:n_population, bootstrapped_sample_size, replace = TRUE)
+    bootstrapped_pop <- population[bootstrapped_ids, ]
+    bootstrapped_results_pop <- nested_simulation_results_pop_per_id[bootstrapped_ids, ] %>% unnest()
+    
+    # Compute outcomes of interest and store
+    return(compute_outcomes(bootstrapped_pop, bootstrapped_results_pop, hef_threshold = hef_quantile))
+    
+  }
+  
+  # Combine results
+  bootstrapped_outcomes <- do.call(rbind, bootstrap_results)
+
   i_run <<- i_run + 1
   
-  return(
-    compute_outcomes(population, merge(results, population, by = 'id'), hef_threshold = hef_quantile)
+  return(list(
+    "parameter_set_outcomes" = parameter_set_outcomes,
+    "bootstrapped_outcomes" = bootstrapped_outcomes
+    )
   )
   
 })
 
 cat('Run in ', format(Sys.time() - tt0))
 
-psa_results <- bind_rows(outcomes_by_run, .id = 'run')
-save_df_to_csv(psa_results, 'psa_results')
+# Get list of dataframes 
+psa_results_per_run <- lapply(1:n_size, function(x) outcomes_by_run[[x]]$parameter_set_outcomes)
+bootstrapped_outcomes_per_run <- lapply(1:n_size, function(x) outcomes_by_run[[x]]$bootstrapped_outcomes)
 
+# Save
+psa_results <- bind_rows(psa_results_per_run, .id = 'run')
+bootstrapped_outcomes <- bind_rows(bootstrapped_outcomes_per_run, .id = 'run')
+save_df_to_csv(psa_results, 'psa_results')
+save_df_to_csv(bootstrapped_outcomes, 'bootstrapped_outcomes')
 
